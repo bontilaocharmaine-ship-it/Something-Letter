@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Letter 💌</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #00b4d8 0%, #0077b6 50%, #023e8a 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.05)"/><circle cx="75" cy="75" r="0.5" fill="rgba(255,255,255,0.03)"/><circle cx="50" cy="10" r="0.8" fill="rgba(255,255,255,0.04)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+            padding: 40px;
+            max-width: 700px;
+            width: 90%;
+            backdrop-filter: blur(15px);
+            position: relative;
+            z-index: 2;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        /* Envelope Closed State */
+        .envelope-closed {
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            padding: 60px 20px;
+        }
+
+        .envelope-closed:hover {
+            transform: scale(1.05);
+        }
+
+        .envelope-icon {
+            font-size: 8rem;
+            color: #00b4d8;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 10px 20px rgba(0, 180, 216, 0.3));
+        }
+
+        .envelope-closed:hover .envelope-icon {
+            transform: scale(1.1) rotate(5deg);
+            color: #0077b6;
+        }
+
+        .envelope-title {
+            font-size: 2.2rem;
+            color: #2c5282;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .envelope-subtitle {
+            font-size: 1.2rem;
+            color: #4a5568;
+            font-style: italic;
+        }
+
+        /* Letter Reveal Animation */
+        .letter-reveal {
+            animation: slideUp 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes slideUp {
+            0% {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Letter Content */
+        .letter-header {
+            text-align: center;
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: fadeIn 1s 0.5s forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .letter-title {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            color: #2c5282;
+            font-weight: bold;
+        }
+
+        .letter-date {
+            color: #4a90e2;
+            font-size: 0.95rem;
+            font-style: italic;
+        }
+
+        .letter-body {
+            background: linear-gradient(145deg, #ffffff, #f8fafc);
+            border: 3px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 40px;
+            min-height: 500px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .letter-text {
+            font-size: 1.15rem;
+            line-height: 1.85;
+            color: #2d3748;
+            white-space: pre-wrap;
+            min-height: 450px;
+            padding-right: 10px;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1.6rem;
+            background: linear-gradient(to bottom, #00b4d8, #0077b6);
+            animation: blink 1s infinite;
+            margin-left: 2px;
+            vertical-align: middle;
+            border-radius: 2px;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .typewriter-complete {
+            animation: none !important;
+        }
+
+        .signature {
+            text-align: right;
+            margin-top: 40px;
+            font-size: 1.3rem;
+            color: #2c5282;
+            font-weight: bold;
+            opacity: 0;
+            animation: slideInRight 1s 2s forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            .envelope-icon {
+                font-size: 6rem;
+            }
+            
+            .letter-body {
+                padding: 30px 20px;
+                min-height: 400px;
+            }
+            
+            .letter-text {
+                font-size: 1rem;
+                line-height: 1.7;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Envelope Closed -->
+        <div class="envelope-closed" id="envelopeClosed" onclick="openLetter()">
+            <div class="envelope-icon">✉️</div>
+            <div class="envelope-title">Click to Open Your Letter</div>
+            <div class="envelope-subtitle">A special message is waiting inside... 💙</div>
+        </div>
+
+        <!-- Letter Content (Hidden Initially) -->
+        <div id="letterContent" class="hidden letter-reveal">
+            <div class="letter-header">
+                <div class="letter-title">April 23</div>
+                <div class="letter-date">Your special day 💙</div>
+            </div>
+
+            <div class="letter-body">
+                <div class="letter-text" id="animatedText"></div>
+                <span class="cursor" id="cursor"></span>
+            </div>
+
+            <div class="signature" id="signature">
+                Menggay
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const letterContent = `Henloo, how r u there? hope u doing okay 
+
+Sooo like its april 23 here hehe its my birthday  haha yay! 
+
+And ano as I turn 24,  I decided to let the past go. Like mga done na ug process na things and finally let it go. This is something about what I felt before. Pero just to be clear, wala koy anything against you. I understand things better now and somehow maybe selfish ni but this is really just for me.  (taasas intro bai). 
+
+Anyway, here it goes....
+
+
+Dis is not a normal confession, more like a letting go kind of thing hahahaha.
+
+What I felt for you back then wasn't simple. Over time, narealized nako I developed feelings for you. You are my bestfriend but later on you became more than that and dugay nako na realize. To be exact it was just after wala nagd mi atong jet. so after that I have a lot of time to think about things. I realized I was confused with myself at that time. I was trying to make things work with someone else while part of me was somewhere else. Like legit wa ko kabaw ngano to sya but moangkon na kung unsa to naa namo ni jet was genuine and amo fall out has nothing to do with u and this feelings, its just that naay lingering thoughts and feelings that time na wa ko kasabot unsa to and asa to gikan but gikan ras akong self  diay but yeah gago sad sya.
+
+Because of how  kind your heart is, so thoughtful, someone who carries dreams worth chasing and plans her steps carefully to reach them. So yeah, I admired, like or watever it is called falling for someone without realizing it, without planning it. I just found myself admiring you because you're you.
+
+Nahan lng nako iclear na I'm not saying all of this to get a reaction or because I want something to happen between us ha. I'm saying this because I needed to finally express it. I've had a lot of time to think about these feelings, so dili ni tungod sa confusion or boredom. Medyo nahihirapan na ako sa kalisud to keep waiting for the right timing para ma express ni but there's no perfect timing once your're alreadyy confused.
+
+I know this might feel like it could change or even ruin the friendship we had, and I've thought about that. But I want you to know that everything I did for you, everything I gave, came from a place of real love and care. Wala jud koy gi-expect in return. So please don't feel guilty or anything because of this.
+
+I'm not expecting anything from you. You don't have to reply to this if you don't want to. But if you do, I'll appreciate it. Either way, okay ra jud
+
+I just want to move forward without the "what ifs" and finally be able to love again fully and honestly.
+
+I'm genuinely happy for you wherever you are now. . I respect you completely. Our friendship matters to me and I genuinely hope we can keep it just as it is. And I'll still be your menggay, your Charmainus, your asawa in the same light and playful way we always had.
+
+
+
+This is me finally letting it go, with peace.`;
+
+        function openLetter() {
+            // Hide envelope
+            document.getElementById('envelopeClosed').classList.add('hidden');
+            
+            // Show letter with animation
+            document.getElementById('letterContent').classList.remove('hidden');
+            
+            // Start typewriter effect after a short delay
+            setTimeout(() => {
+                typeWriterEffect();
+            }, 800);
+        }
+
+        function typeWriterEffect() {
+            const textElement = document.getElementById('animatedText');
+            const cursor = document.getElementById('cursor');
+            const fullText = letterContent;
+            let i = 0;
+
+            function typeChar() {
+                if (i < fullText.length) {
+                    textElement.textContent = fullText.substring(0, i);
+                    
+                    // Smart typing speeds based on character
+                    let speed = 40;
+                    const currentChar = fullText[i];
+                    
+                    if (currentChar === '.' || currentChar === '!' || currentChar === '?') {
+                        speed = 300;
+                    } else if (currentChar === ',' || currentChar === ';' || currentChar === ':') {
+                        speed = 150;
+                    } else if (currentChar === '\n') {
+                        speed = 50;
+                    } else if (currentChar === ' ') {
+                        speed = 30;
+                    }
+                    
+                    i++;
+                    setTimeout(typeChar, speed);
+                } else {
+                    // Animation complete
+                    cursor.classList.add('typewriter-complete');
+                    document.getElementById('signature').style.animationDelay = '0s';
+                }
+            }
+
+            typeChar();
+        }
+
+        // Prevent accidental multiple clicks
+        let letterOpened = false;
+        document.getElementById('envelopeClosed').addEventListener('click', function(e) {
+            if (!letterOpened) {
+                letterOpened = true;
+                openLetter();
+            }
+        });
+
+        // Add click sound effect (optional)
+        function playClickSound() {
+            const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAo');
+            audio.volume = 0.3;
+            audio.play().catch(() => {});
+        }
+    </script>
+</body>
+</html>
